@@ -30,6 +30,8 @@ import contextlib
 
 from io import BytesIO
 from zipfile import ZipFile
+
+from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 from zipstream.aiozipstream import AioZipStream
 
 import discord
@@ -78,7 +80,19 @@ class EmojiTools(commands.Cog):
 
     @commands.bot_has_permissions(embed_links=True)
     @_emojitools.command(name="info")
-    async def _info(self, ctx: commands.Context, emoji: discord.Emoji):
+    async def _info(self, ctx: commands.Context, emoji: discord.Emoji = None):
+        if emoji:
+            return await ctx.send(embed=self._get_embed(emoji, True))
+        else:
+            emblist = []
+
+            for e in ctx.guild.emojis:
+                emblist.append(self._get_embed(e, False))
+
+            await menu(ctx, emblist, DEFAULT_CONTROLS)
+
+
+    async def _get_embed(self, emoji: discord.Emoji, include_author: bool = False):
         """Get info about a custom emoji from this server."""
         embed = discord.Embed(
             description=f"Emoji Information for {emoji}",
@@ -104,9 +118,9 @@ class EmojiTools(commands.Cog):
             name="Creation (UTC)",
             value=f"{str(emoji.created_at)[:19]}"
         )
-        if ctx.guild.me.guild_permissions.manage_emojis:
+        if include_author and emoji.guild.me.guild_permissions.manage_emojis:
             with contextlib.suppress(discord.HTTPException):
-                e: discord.Emoji = await ctx.guild.fetch_emoji(emoji.id)
+                e: discord.Emoji = await emoji.guild.fetch_emoji(emoji.id)
                 embed.add_field(
                     name="Author",
                     value=f"{e.user.mention if e.user else 'Unknown'}"
@@ -115,7 +129,8 @@ class EmojiTools(commands.Cog):
             name="Roles Allowed",
             value=f"{emoji.roles or 'Everyone'}"
         )
-        return await ctx.send(embed=embed)
+
+        return embed
 
     @commands.admin_or_permissions(administrator=True)
     @_emojitools.group(name="save")
