@@ -82,12 +82,12 @@ class EmojiTools(commands.Cog):
     @_emojitools.command(name="info")
     async def _info(self, ctx: commands.Context, emoji: discord.Emoji = None):
         if emoji:
-            return await ctx.send(embed=self._get_embed(ctx, emoji, True))
+            return await ctx.send(embed=await self._get_embed(ctx, emoji, True))
         else:
             emblist = []
 
             for e in ctx.guild.emojis:
-                emblist.append(self._get_embed(ctx, e, False))
+                emblist.append(await self._get_embed(ctx, e, False))
 
             await menu(ctx, emblist, DEFAULT_CONTROLS)
 
