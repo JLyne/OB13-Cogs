@@ -82,17 +82,16 @@ class EmojiTools(commands.Cog):
     @_emojitools.command(name="info")
     async def _info(self, ctx: commands.Context, emoji: discord.Emoji = None):
         if emoji:
-            return await ctx.send(embed=self._get_embed(emoji, True))
+            return await ctx.send(embed=self._get_embed(ctx, emoji, True))
         else:
             emblist = []
 
             for e in ctx.guild.emojis:
-                emblist.append(self._get_embed(e, False))
+                emblist.append(self._get_embed(ctx, e, False))
 
             await menu(ctx, emblist, DEFAULT_CONTROLS)
 
-
-    async def _get_embed(self, emoji: discord.Emoji, include_author: bool = False):
+    async def _get_embed(self, ctx: commands.Context, emoji: discord.Emoji, include_author: bool = False) -> discord.Embed:
         """Get info about a custom emoji from this server."""
         embed = discord.Embed(
             description=f"Emoji Information for {emoji}",
@@ -127,7 +126,7 @@ class EmojiTools(commands.Cog):
                 )
         embed.add_field(
             name="Roles Allowed",
-            value=f"{emoji.roles or 'Everyone'}"
+            value=f"{','.join([r.mention for r in emoji.roles]) if emoji.roles else 'Everyone'}"
         )
 
         return embed
